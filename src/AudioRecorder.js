@@ -36,8 +36,8 @@ class AudioRecorder extends Component {
         for(let i = 0; i < 2; i++) {
           const channel = event.inputBuffer.getChannelData(i);
           this.buffers[i].push(new Float32Array(channel));
-          this.bufferLength += bufferSize;
         }
+        this.bufferLength += bufferSize;
       };
 
       gain.connect(recorder);
