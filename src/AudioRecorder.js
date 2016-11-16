@@ -117,6 +117,8 @@ class AudioRecorder extends Component {
       if(this.playbackSource) {
         this.playbackSource.stop();
         delete this.playbackSource;
+        this.buffers = [[], []];
+        this.bufferLength = 0;
       }
 
       this.setState({
