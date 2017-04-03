@@ -1,30 +1,78 @@
-import React, { Component, PropTypes } from 'react';
+import * as React from 'react';
 import encodeWAV from './wav-encoder.js';
 
-class AudioRecorder extends Component {
-  constructor(props) {
-    super(props);
+interface AudioRecorderProps {
+  audio: Blob,
+  download: boolean,
+  loop: boolean,
 
-    this.buffers = [[], []];
-    this.bufferLength = 0;
-    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    this.sampleRate = this.audioContext.sampleRate;
-    this.recordingStream = null;
-    this.playbackSource = null;
+  onAbort: () => void,
+  onChange: ({ duration: number, blob: Blob }?) => void,
+  onEnded: () => void,
+  onPause: () => void,
+  onPlay: () => void,
+  onRecordStart: () => void,
 
-    this.state = {
-      recording: false,
-      playing: false,
-      audio: props.audio
-    };
+  strings: {
+    play: string,
+    playing: string,
+    record: string,
+    recording: string,
+    remove: string,
+    download: string
   }
+};
+
+interface AudioRecorderState {
+  recording: boolean,
+  playing: boolean,
+  audio: Blob
+};
+
+function downloadBlob(blob: Blob, filename: string): HTMLAnchorElement {
+  const url = (URL || webkitURL).createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  const click = document.createEvent('Event');
+  click.initEvent('click', true, true);
+  link.dispatchEvent(click);
+  return link;
+}
+
+export default class AudioRecorder extends React.Component<AudioRecorderProps, AudioRecorderState> {
+  buffers = [[], []];
+  bufferLength = 0;
+  audioContext = new (AudioContext || webkitAudioContext)();
+  sampleRate = this.audioContext.sampleRate;
+  recordingStream = null;
+  playbackSource = null;
+
+  state: AudioRecorderState = {
+    recording: false,
+    playing: false,
+    audio: this.props.audio
+  };
+
+  static defaultProps = {
+    loop: false,
+
+    strings: {
+      play: '🔊 Play',
+      playing: '❚❚ Playing',
+      record: '● Record',
+      recording: '● Recording',
+      remove: '✖ Remove',
+      download: '\ud83d\udcbe Save' // unicode floppy disk
+    }
+  };
 
   startRecording() {
-    navigator.getUserMedia = navigator.getUserMedia ||
-                          navigator.webkitGetUserMedia ||
-                          navigator.mozGetUserMedia ||
-                          navigator.msGetUserMedia;
-    navigator.getUserMedia({ audio: true }, (stream) => {
+    const getUserMedia = navigator.getUserMedia ||
+                         navigator.webkitGetUserMedia ||
+                         navigator.mozGetUserMedia ||
+                         navigator.msGetUserMedia;
+    getUserMedia({ audio: true }, (stream) => {
       const gain = this.audioContext.createGain();
       const audioSource = this.audioContext.createMediaStreamSource(stream);
       audioSource.connect(gain);
@@ -44,14 +92,14 @@ class AudioRecorder extends Component {
       recorder.connect(this.audioContext.destination);
       this.recordingStream = stream;
     }, (err) => {
-
+      // TODO
     });
 
     this.setState({
       recording: true
     });
     if(this.props.onRecordStart) {
-      this.props.onRecordStart.call();
+      this.props.onRecordStart();
     }
   }
 
@@ -66,7 +114,7 @@ class AudioRecorder extends Component {
     });
 
     if(this.props.onChange) {
-      this.props.onChange.call(null, {
+      this.props.onChange({
         duration: this.bufferLength / this.sampleRate,
         blob: audioData
       });
@@ -74,7 +122,7 @@ class AudioRecorder extends Component {
   }
 
   startPlayback() {
-    const reader = new window.FileReader();
+    const reader = new FileReader();
     reader.readAsArrayBuffer(this.state.audio);
     reader.onloadend = () => {
       this.audioContext.decodeAudioData(reader.result, (buffer) => {
@@ -93,21 +141,21 @@ class AudioRecorder extends Component {
       });
 
       if(this.props.onPlay) {
-        this.props.onPlay.call();
+        this.props.onPlay();
       }
     };
   }
 
-  stopPlayback(event) {
+  stopPlayback(event?: Event) {
     if(this.state.playing) {
-      event.preventDefault();
+      if (event) event.preventDefault();
 
       this.setState({
         playing: false
       });
 
       if(this.props.onAbort) {
-        this.props.onAbort.call();
+        this.props.onAbort();
       }
     }
   }
@@ -124,19 +172,13 @@ class AudioRecorder extends Component {
       });
 
       if(this.props.onChange) {
-        this.props.onChange.call();
+        this.props.onChange();
       }
     }
   }
 
   downloadAudio() {
-    const url = (window.URL || window.webkitURL).createObjectURL(this.state.audio);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'output.wav';
-    const click = document.createEvent('Event');
-    click.initEvent('click', true, true);
-    link.dispatchEvent(click);
+    downloadBlob(this.state.audio, 'output.wav');
   }
 
   onAudioEnded() {
@@ -145,7 +187,7 @@ class AudioRecorder extends Component {
     }
 
     if(this.props.onEnded) {
-      this.props.onEnded.call();
+      this.props.onEnded();
     }
   }
 
@@ -208,40 +250,3 @@ class AudioRecorder extends Component {
     );
   }
 }
-
-AudioRecorder.propTypes = {
-  audio: PropTypes.instanceOf(Blob),
-  download: PropTypes.bool,
-  loop: PropTypes.bool,
-
-  onAbort: PropTypes.func,
-  onChange: PropTypes.func,
-  onEnded: PropTypes.func,
-  onPause: PropTypes.func,
-  onPlay: PropTypes.func,
-  onRecordStart: PropTypes.func,
-
-  strings: React.PropTypes.shape({
-    play: PropTypes.string,
-    playing: PropTypes.string,
-    record: PropTypes.string,
-    recording: PropTypes.string,
-    remove: PropTypes.string,
-    download: PropTypes.string
-  })
-};
-
-AudioRecorder.defaultProps = {
-  loop: false,
-  
-  strings: {
-    play: '🔊 Play',
-    playing: '❚❚ Playing',
-    record: '● Record',
-    recording: '● Recording',
-    remove: '✖ Remove',
-    download: '\ud83d\udcbe Save' // unicode floppy disk
-  }
-};
-
-export default AudioRecorder;

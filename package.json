@@ -13,8 +13,8 @@
     "url": "https://github.com/kremonte/react-audio-recorder/issues"
   },
   "scripts": {
-    "build": "tsc -p .",
-    "dev": "tsc -w .",
+    "build": "tsc -p",
+    "dev": "tsc -w",
     "test": "tslint",
     "prepublish": "npm run build"
   },
@@ -23,6 +23,7 @@
     "react-component"
   ],
   "devDependencies": {
+    "@types/react": "^15.0.21",
     "react": "^15.4.2",
     "react-dom": "^15.4.2",
     "typescript": "^2.2.2"

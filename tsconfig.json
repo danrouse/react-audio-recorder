@@ -4,14 +4,17 @@
     "target": "es2015",
     "jsx": "react",
     "allowJs": true,
-    "typeRoots": [
-      "typings",
-      "node_modules/@types"
-    ],
     "lib": [
       "dom",
       "es2015"
     ],
+    "typeRoots": [
+      "typings",
+      "node_modules/@types"
+    ],
     "outDir": "./dist"
-  }
+  },
+  "include": [
+    "./src/**/*"
+  ]
 }
