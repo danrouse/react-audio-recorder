@@ -2,250 +2,290 @@ import * as React from 'react';
 import encodeWAV from './wav-encoder.js';
 
 interface AudioRecorderProps {
-  audio: Blob,
-  download: boolean,
+  initialAudio: Blob,
+  downloadable: boolean,
   loop: boolean,
+  filename?: string,
 
-  onAbort: () => void,
-  onChange: ({ duration: number, blob: Blob }?) => void,
-  onEnded: () => void,
-  onPause: () => void,
-  onPlay: () => void,
-  onRecordStart: () => void,
+  onAbort?: () => void,
+  onChange?: ({ duration: number, blob: Blob }?) => void,
+  onEnded?: () => void,
+  onPause?: () => void,
+  onPlay?: () => void,
+  onRecordStart?: () => void,
 
-  strings: {
-    play: string,
-    playing: string,
-    record: string,
-    recording: string,
-    remove: string,
-    download: string
-  }
+  playLabel: string,
+  playingLabel: string,
+  recordLabel: string,
+  recordingLabel: string,
+  removeLabel: string,
+  downloadLabel: string,
 };
 
 interface AudioRecorderState {
-  recording: boolean,
-  playing: boolean,
-  audio: Blob
+  isRecording: boolean,
+  isPlaying: boolean,
+  audioData?: Blob
 };
 
+/*
+interface Navigator {
+  webkitGetUserMedia?: typeof navigator.getUserMedia,
+  mozGetUserMedia?: typeof navigator.getUserMedia,
+  msGetUserMedia?: typeof navigator.getUserMedia,
+};
+
+const getUserMedia = navigator.getUserMedia ||
+                     navigator.webkitGetUserMedia ||
+                     navigator.mozGetUserMedia ||
+                     navigator.msGetUserMedia;
+*/
+const getUserMedia = navigator.getUserMedia;
+
 function downloadBlob(blob: Blob, filename: string): HTMLAnchorElement {
-  const url = (URL || webkitURL).createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = filename;
+  const url = window.URL.createObjectURL(blob);
   const click = document.createEvent('Event');
   click.initEvent('click', true, true);
+
+  const link = document.createElement('A') as HTMLAnchorElement;
+  link.href = url;
+  link.download = filename;
   link.dispatchEvent(click);
+  link.click();
   return link;
 }
 
-export default class AudioRecorder extends React.Component<AudioRecorderProps, AudioRecorderState> {
-  buffers = [[], []];
-  bufferLength = 0;
-  audioContext = new (AudioContext || webkitAudioContext)();
-  sampleRate = this.audioContext.sampleRate;
-  recordingStream = null;
-  playbackSource = null;
 
-  state: AudioRecorderState = {
-    recording: false,
-    playing: false,
-    audio: this.props.audio
-  };
+class WAVEInterface {
+  static audioContext = new AudioContext();
+  static bufferSize = 2048;
 
-  static defaultProps = {
-    loop: false,
+  playbackNode: AudioBufferSourceNode;
+  recordingStream: MediaStream;
+  buffers: Float32Array[][]; // one buffer for each channel L,R
+  encodingCache: Blob?;
 
-    strings: {
-      play: '🔊 Play',
-      playing: '❚❚ Playing',
-      record: '● Record',
-      recording: '● Recording',
-      remove: '✖ Remove',
-      download: '\ud83d\udcbe Save' // unicode floppy disk
-    }
-  };
+  get bufferLength() { return this.buffers[0].length * WAVEInterface.bufferSize; }
+  get audioDuration() { return this.bufferLength / WAVEInterface.audioContext.sampleRate; }
+  get audioData() {
+    return this.encodingCache || encodeWAV(this.buffers, this.bufferLength, AudioRecorder.audioContext.sampleRate);
+  }
 
   startRecording() {
-    const getUserMedia = navigator.getUserMedia ||
-                         navigator.webkitGetUserMedia ||
-                         navigator.mozGetUserMedia ||
-                         navigator.msGetUserMedia;
-    getUserMedia({ audio: true }, (stream) => {
-      const gain = this.audioContext.createGain();
-      const audioSource = this.audioContext.createMediaStreamSource(stream);
-      audioSource.connect(gain);
+    return new Promise((resolve, reject) => {
+      getUserMedia({ audio: true }, (stream) => {
+        const { audioContext } = WAVEInterface;
+        const gainNode = audioContext.createGain();
+        const audioNode = audioContext.createMediaStreamSource(stream);
+        const recorderNode = audioContext.createScriptProcessor(AudioRecorder.bufferSize, 2, 2);
+        if (this.encodingCache) this.encodingCache = null;
 
-      const bufferSize = 2048;
-      const recorder = this.audioContext.createScriptProcessor(bufferSize, 2, 2);
-      recorder.onaudioprocess = (event) => {
-        // save left and right buffers
-        for(let i = 0; i < 2; i++) {
-          const channel = event.inputBuffer.getChannelData(i);
-          this.buffers[i].push(new Float32Array(channel));
-        }
-        this.bufferLength += bufferSize;
-      };
+        recorderNode.onaudioprocess = (event) => {
+          if (this.encodingCache) this.encodingCache = null;
+          // save left and right buffers
+          for (let i = 0; i < 2; i++) {
+            const channel = event.inputBuffer.getChannelData(i);
+            this.buffers[i].push(new Float32Array(channel));
+          }
+        };
 
-      gain.connect(recorder);
-      recorder.connect(this.audioContext.destination);
-      this.recordingStream = stream;
-    }, (err) => {
-      // TODO
+        audioNode.connect(gainNode);
+        gainNode.connect(recorderNode);
+        recorderNode.connect(audioContext.destination);
+
+        this.recordingStream = stream;
+        resolve(stream);
+      }, (err) => {
+        reject(err);
+      });
     });
-
-    this.setState({
-      recording: true
-    });
-    if(this.props.onRecordStart) {
-      this.props.onRecordStart();
-    }
   }
 
   stopRecording() {
     this.recordingStream.getTracks()[0].stop();
+  }
 
-    const audioData = encodeWAV(this.buffers, this.bufferLength, this.sampleRate);
+  startPlayback(loop?: boolean = false) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsArrayBuffer(this.audioData);
+      reader.onloadend = () => {
+        audioContext.decodeAudioData(reader.result, (buffer) => {
+          const source = WAVEInterface.audioContext.createBufferSource();
+          source.buffer = buffer;
+          source.connect(WAVEInterface.audioContext.destination);
+          source.loop = loop;
+          source.start(0);
+          source.onended = onended;
+          this.playbackNode = source;
+          resolve(source);
+        });
+      };
+    });
+  }
+
+  stopPlayback() {
+
+  }
+
+  reset() {
+    if (this.playbackNode) {
+      this.playbackNode.stop();
+      this.playbackNode.disconnect(0);
+      delete this.playbackNode;
+    }
+    if (this.recordingStream) {
+      this.recordingStream.getTracks()[0].stop();
+      delete this.recordingStream;
+    }
+    this.buffers = [[], []];
+  }
+}
+
+export default class AudioRecorder extends React.Component<AudioRecorderProps, AudioRecorderState> {
+  waveInterface = new WAVEInterface();
+
+  state: AudioRecorderState = {
+    isRecording: false,
+    isPlaying: false,
+    audio: this.props.initialAudio
+  };
+
+  static defaultProps = {
+    loop: false,
+    downloadable: true,
+    filename: 'output.wav',
+    playLabel: '🔊 Play',
+    playingLabel: '❚❚ Playing',
+    recordLabel: '● Record',
+    recordingLabel: '● Recording',
+    removeLabel: '✖ Remove',
+    downloadLabel: '\ud83d\udcbe Save' // unicode floppy disk
+  };
+
+  componentWillReceiveProps(nextProps) {
+    // handle new initialAudio being passed in
+    if (
+      nextProps.initialAudio &&
+      nextProps.initialAudio !== this.props.initialAudio &&
+      this.state.audioData &&
+      nextProps.initialAudio !== this.state.audioData
+    ) {
+      this.waveInterface.reset();
+      this.setState({
+        audio: nextProps.initialAudio,
+        isPlaying: false,
+        isRecording: false,
+      });
+    }
+  }
+
+  componentWillMount() { this.waveInterface.reset(); }
+  componentWillUnmount() { this.waveInterface.reset(); }
+
+  startRecording() {
+    if (!this.state.isRecording) {
+      this.waveInterface.startRecording()
+        .then(() => {
+          this.setState({ isRecording: true });
+          if (this.props.onRecordStart) this.props.onRecordStart();
+        })
+        .catch((err) => { throw err; });
+    }
+  }
+
+  stopRecording() {
+    this.waveInterface.stopRecording();
 
     this.setState({
-      recording: false,
-      audio: audioData
+      isRecording: false,
+      audioData: this.waveInterface.audioData
     });
 
-    if(this.props.onChange) {
+    if (this.props.onChange) {
       this.props.onChange({
-        duration: this.bufferLength / this.sampleRate,
-        blob: audioData
+        duration: this.waveInterface.audioDuration,
+        blob: this.waveInterface.audioData
       });
     }
   }
 
   startPlayback() {
-    const reader = new FileReader();
-    reader.readAsArrayBuffer(this.state.audio);
-    reader.onloadend = () => {
-      this.audioContext.decodeAudioData(reader.result, (buffer) => {
-        const source = this.audioContext.createBufferSource();
-        source.buffer = buffer;
-        source.connect(this.audioContext.destination);
-        source.loop = this.props.loop;
-        source.start(0);
-        source.onended = this.onAudioEnded.bind(this);
-
-        this.playbackSource = source;
-      });
-
-      this.setState({
-        playing: true
-      });
-
-      if(this.props.onPlay) {
-        this.props.onPlay();
-      }
-    };
-  }
-
-  stopPlayback(event?: Event) {
-    if(this.state.playing) {
-      if (event) event.preventDefault();
-
-      this.setState({
-        playing: false
-      });
-
-      if(this.props.onAbort) {
-        this.props.onAbort();
-      }
-    }
-  }
-
-  removeAudio() {
-    if(this.state.audio) {
-      if(this.playbackSource) {
-        this.playbackSource.stop();
-        delete this.playbackSource;
-      }
-
-      this.setState({
-        audio: null
-      });
-
-      if(this.props.onChange) {
-        this.props.onChange();
-      }
-    }
-  }
-
-  downloadAudio() {
-    downloadBlob(this.state.audio, 'output.wav');
-  }
-
-  onAudioEnded() {
-    if(this.state.playing) {
-      this.setState({ playing: false });
-    }
-
-    if(this.props.onEnded) {
-      this.props.onEnded();
-    }
-  }
-
-  componentWillReceiveProps(nextProps) {
-    if(this.state.audio && nextProps.audio !== this.state.audio) {
-      this.stopPlayback();
-      this.setState({
-        audio: nextProps.audio
+    if (!this.state.isPlaying) {
+      this.waveInterface.startPlayback(this.props.loop).then(() => {
+        this.setState({ isPlaying: true });
+        if (this.props.onPlay) this.props.onPlay();
       });
     }
   }
 
-  render() {
-    const strings = this.props.strings;
+  stopPlayback() {
+    this.waveInterface.stopPlayback();
+    this.setState({ isPlaying: false });
+    if (this.props.onAbort) this.props.onAbort();
+  }
 
-    let buttonText, buttonClass = ['AudioRecorder-button'], audioButtons;
-    let clickHandler;
-    if(this.state.audio) {
-      buttonClass.push('hasAudio');
+  onAudioEnded = () => {
+    this.setState({ isPlaying: false });
+    if (this.props.onEnded) this.props.onEnded();
+  };
 
-      if(this.state.playing) {
-        buttonClass.push('isPlaying');
-        buttonText = strings.playing;
-        clickHandler = this.stopPlayback;
+  onRemoveClick = () => this.waveInterface.destroy();
+
+  onDownloadClick = () => downloadBlob(this.state.audioData, this.props.filename);
+
+  onButtonClick = (event: React.SyntheticEvent<HTMLButtonElement>) => {
+    if (this.state.audioData) {
+      if (this.state.isPlaying) {
+        this.stopPlayback();
+        event.preventDefault();
       } else {
-        buttonText = strings.play;
-        clickHandler = this.startPlayback;
-      }
-
-      audioButtons = [
-        <button key="remove" className="AudioRecorder-remove" onClick={this.removeAudio.bind(this)}>{strings.remove}</button>
-      ];
-
-      if(this.props.download) {
-        audioButtons.push(
-          <button key="download" className="AudioRecorder-download" onClick={this.downloadAudio.bind(this)}>{strings.download}</button>
-        );
+        this.startPlayback();
       }
     } else {
-      if(this.state.recording) {
-        buttonClass.push('isRecording');
-        buttonText = strings.recording;
-        clickHandler = this.stopRecording;
+      if (this.state.isRecording) {
+        this.stopRecording();
       } else {
-        buttonText = strings.record;
-        clickHandler = this.startRecording;
+        this.startRecording();
       }
     }
+  };
 
+  render() {
     return (
       <div className="AudioRecorder">
         <button
-          className={buttonClass.join(' ')}
-          onClick={clickHandler && clickHandler.bind(this)}
-          >
-          {buttonText}
+          className={
+            [
+              'AudioRecorder-button',
+              this.state.audioData ? 'hasAudio' : '',
+              this.state.isPlaying ? 'isPlaying' : '',
+              this.state.isRecording ? 'isRecording' : '',
+            ].join(' ')
+          }
+          onClick={this.onButtonClick}
+        >
+          {this.state.audioData && !this.state.isPlaying && this.props.playLabel}
+          {this.state.audioData && this.state.isPlaying && this.props.playingLabel}
+          {!this.state.audioData && !this.state.isRecording && this.props.recordLabel}
+          {!this.state.audioData && this.state.isRecording && this.props.recordingLabel}
         </button>
-        {audioButtons}
+        {this.state.audioData &&
+          <button
+            className="AudioRecorder-remove"
+            onClick={this.onRemoveClick}
+          >
+            {this.props.removeLabel}
+          </button>
+        }
+        {this.state.audioData && this.props.downloadable &&
+          <button
+            className="AudioRecorder-download"
+            onClick={this.onDownloadClick}
+          >
+            {this.props.downloadLabel}
+          </button>
+        }
       </div>
     );
   }
