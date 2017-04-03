@@ -1,5 +1,6 @@
 import * as React from 'react';
 import WAVEInterface from './waveInterface';
+import downloadBlob from './downloadBlob';
 
 interface AudioRecorderProps {
   initialAudio?: Blob,
@@ -29,20 +30,6 @@ interface AudioRecorderState {
   isPlaying: boolean,
   audioData?: Blob
 };
-
-// trigger a browser file download of binary data
-function downloadBlob(blob: Blob, filename: string): HTMLAnchorElement {
-  const url = window.URL.createObjectURL(blob);
-  const click = document.createEvent('Event');
-  click.initEvent('click', true, true);
-
-  const link = document.createElement('A') as HTMLAnchorElement;
-  link.href = url;
-  link.download = filename;
-  link.dispatchEvent(click);
-  link.click();
-  return link;
-}
 
 export default class AudioRecorder extends React.Component<AudioRecorderProps, AudioRecorderState> {
   waveInterface = new WAVEInterface();
