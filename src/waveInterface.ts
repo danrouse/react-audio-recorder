@@ -6,19 +6,18 @@ interface Navigator {
   mozGetUserMedia?: typeof navigator.getUserMedia,
   msGetUserMedia?: typeof navigator.getUserMedia,
 };
-
-const getUserMedia = navigator.getUserMedia ||
-                     navigator.webkitGetUserMedia ||
-                     navigator.mozGetUserMedia ||
-                     navigator.msGetUserMedia;
+navigator.getUserMedia = navigator.getUserMedia ||
+                         navigator.webkitGetUserMedia ||
+                         navigator.mozGetUserMedia ||
+                         navigator.msGetUserMedia;
 */
-const getUserMedia = navigator.getUserMedia;
 
 export default class WAVEInterface {
   static audioContext = new AudioContext();
   static bufferSize = 2048;
 
   playbackNode: AudioBufferSourceNode;
+  recordingNodes: AudioNode[] = [];
   recordingStream: MediaStream;
   buffers: Float32Array[][]; // one buffer for each channel L,R
   encodingCache?: Blob;
@@ -31,14 +30,15 @@ export default class WAVEInterface {
 
   startRecording() {
     return new Promise((resolve, reject) => {
-      getUserMedia({ audio: true }, (stream) => {
+      navigator.getUserMedia({ audio: true }, (stream) => {
         const { audioContext } = WAVEInterface;
-        const gainNode = audioContext.createGain();
-        const audioNode = audioContext.createMediaStreamSource(stream);
-        const recorderNode = audioContext.createScriptProcessor(WAVEInterface.bufferSize, 2, 2);
+        const recGainNode = audioContext.createGain();
+        const recSourceNode = audioContext.createMediaStreamSource(stream);
+        const recProcessingNode = audioContext.createScriptProcessor(WAVEInterface.bufferSize, 2, 2);
         if (this.encodingCache) this.encodingCache = null;
 
-        recorderNode.onaudioprocess = (event) => {
+        recProcessingNode.onaudioprocess = (event) => {
+          console.log('audio process', this);
           if (this.encodingCache) this.encodingCache = null;
           // save left and right buffers
           for (let i = 0; i < 2; i++) {
@@ -47,11 +47,12 @@ export default class WAVEInterface {
           }
         };
 
-        audioNode.connect(gainNode);
-        gainNode.connect(recorderNode);
-        recorderNode.connect(audioContext.destination);
+        recSourceNode.connect(recGainNode);
+        recGainNode.connect(recProcessingNode);
+        recProcessingNode.connect(audioContext.destination);
 
         this.recordingStream = stream;
+        this.recordingNodes.push(recSourceNode, recGainNode, recProcessingNode);
         resolve(stream);
       }, (err) => {
         reject(err);
@@ -60,7 +61,14 @@ export default class WAVEInterface {
   }
 
   stopRecording() {
-    this.recordingStream.getTracks()[0].stop();
+    if (this.recordingStream) {
+      this.recordingStream.getTracks()[0].stop();
+      delete this.recordingStream;
+    }
+    for (let i in this.recordingNodes) {
+      this.recordingNodes[i].disconnect();
+      delete this.recordingNodes[i];
+    }
   }
 
   startPlayback(loop: boolean = false, onended: () => void) {
@@ -83,7 +91,7 @@ export default class WAVEInterface {
   }
 
   stopPlayback() {
-
+    this.playbackNode.stop();
   }
 
   reset() {
@@ -92,10 +100,7 @@ export default class WAVEInterface {
       this.playbackNode.disconnect(0);
       delete this.playbackNode;
     }
-    if (this.recordingStream) {
-      this.recordingStream.getTracks()[0].stop();
-      delete this.recordingStream;
-    }
+    this.stopRecording();
     this.buffers = [[], []];
   }
 }
