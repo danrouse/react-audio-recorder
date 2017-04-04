@@ -1,18 +1,19 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
+    "module": "es6",
     "target": "es5",
     "jsx": "react",
     "allowJs": true,
-    "lib": [
-      "dom",
-      "es2015"
-    ],
     "typeRoots": [
       "typings",
       "node_modules/@types"
     ],
-    "outDir": "./dist"
+    "lib": [
+      "dom",
+      "es2015"
+    ],
+    "outDir": "dist",
+    "listEmittedFiles": true
   },
   "include": [
     "./src/**/*"
