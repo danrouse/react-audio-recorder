@@ -7,21 +7,12 @@ A React Component using the Web Audio API to record, save, and play audio.
 
 Live demo: [kremonte.github.io/react-audio-recorder](http://kremonte.github.io/react-audio-recorder/)
 
-To build the examples locally, run:
-
-```
-npm install
-npm start
-```
-
-Then open [`localhost:8000`](http://localhost:8000) in a browser.
-
 
 ## Installation
 
-The easiest way to use react-audio-recorder is to install it from NPM and include it in your own React build process (using [Webpack](http://webpack.github.io/), [Browserify](http://browserify.org), etc).
+The easiest way to use react-audio-recorder is to install it from NPM and include it in your own React build process (using [Webpack](http://webpack.js.org/), [Browserify](http://browserify.org), etc).
 
-You can also use the standalone build by including `dist/react-audio-recorder.js` in your page. If you use this, make sure you have already included React, and it is available as a global variable.
+You can also use the standalone build by including `dist/AudioRecorder.min.js` in your page. If you use this, make sure you have already included React, and it is available as a global variable.
 
 ```
 npm install react-audio-recorder --save
@@ -41,25 +32,26 @@ import AudioRecorder from 'react-audio-recorder';
 For more detailed usage examples, see the [live demo](http://kremonte.github.io/react-audio-recorder/).
 
 ### Properties
-prop|type|Description
-----|----|-----------
-audio|Blob|Audio data to load the component with, optional.
-download|bool|Whether to show the download button after audio is recorded, default: true
-loop|bool|Whether to loop playback, default: false
- | | 
-onAbort|callback|Called when playback is aborted.
-onChange|callback|Called when audio is recorded or removed. Callback data is sent as an object: `{ duration: float, data: Blob }`
-onEnded|callback|Called when playback finishes.
-onPlay|callback|Called when playback begins.
-onRecordStart|callback|Called when recording begins.
- | | 
-strings|object|Button text values
-strings.play|string|default: '🔊 Play'
-strings.playing|string|default: '❚❚ Playing'
-strings.record|string|default: '● Record'
-strings.recording|string|default: '● Recording'
-strings.remove|string|default: '✖ Remove'
-strings.download|string|default: '\ud83d\udcbe Save'
+property|type|default|Description
+----|----|-------|-----------
+initialAudio|Blob|An initial Blob of audio data
+downloadable|boolean|`true`|Whether to show a download button
+loop|boolean|`false`|Whether to loop audio playback
+filename|string|`'output.wav'`|Downloaded file name
+className|string|`''`|CSS class name on the container element
+style|Object|`{}`|Inline styles on the container element
+onAbort|`() => void`||Callback when playback is stopped
+onChange|`(AudioRecorderChangeEvent) => void`||Callback when the recording buffer is modified
+onEnded|`() => void`||Callback when playback completes on its own
+onPause|`() => void`||(NYI)
+onPlay|`() => void`||Callback when playback begins
+onRecordStart|`() => void`||Callback when recording begins
+playLabel|string|'🔊 Play'|Button label
+playingLabel|string|'❚❚ Playing'|Button label
+recordLabel|string|'● Record'|Button label
+recordingLabel|string|'● Recording'|Button label
+removeLabel|string|'✖ Remove'|Button label
+downloadLabel|string|'💾 Save'|Button label
 
 ### Notes
 
@@ -70,15 +62,18 @@ This component is intended for use with short sounds only, such as speech sample
 Because of its usage of the Web Audio API, react-audio-recorder is not compatible with any version of Internet Explorer (Edge is compatible).
 
 
-## Development (`src`, `lib` and the build process)
+## Development
 
-**NOTE:** The source code for the component is in `src`. A transpiled CommonJS version (generated with Babel) is available in `lib` for use with node.js, browserify and webpack. A UMD bundle is also built to `dist`, which can be included without the need for any build system.
-
-To build, watch and serve the examples (which will also watch the component source), run `npm start`. If you just want to watch changes to `src` and rebuild `lib`, run `npm run watch` (this is useful if you are working with `npm link`).
+To use the typescript watcher, run `npm run dev`.
 
 ## License
 
-__PUT LICENSE HERE__
+### MIT License
 
-Copyright (c) 2015 Dan Rouse.
+Copyright 2017 Daniel Rouse
 
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.

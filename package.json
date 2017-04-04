@@ -5,6 +5,7 @@
   "main": "dist/AudioRecorder.min.js",
   "module": "dist/AudioRecorder.js",
   "jsnext:main": "dist/AudioRecorder.js",
+  "license": "MIT",
   "author": "Dan Rouse",
   "homepage": "https://github.com/kremonte/react-audio-recorder",
   "repository": {
