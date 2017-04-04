@@ -2,6 +2,10 @@ import * as React from 'react';
 import WAVEInterface from './waveInterface';
 import downloadBlob from './downloadBlob';
 
+interface AudioRecorderChangeEvent {
+  duration: number,
+  audioData?: Blob,
+}
 interface AudioRecorderProps {
   initialAudio?: Blob,
   downloadable?: boolean,
@@ -11,7 +15,7 @@ interface AudioRecorderProps {
   style?: Object,
 
   onAbort?: () => void,
-  onChange?: ({ duration: number, audioData?: Blob }) => void,
+  onChange?: (AudioRecorderChangeEvent) => void,
   onEnded?: () => void,
   onPause?: () => void,
   onPlay?: () => void,
