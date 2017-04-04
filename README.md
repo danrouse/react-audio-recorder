@@ -5,7 +5,7 @@ A React Component using the Web Audio API to record, save, and play audio.
 
 ## Demo & Examples
 
-Live demo: [danrouse.github.io/react-audio-recorder](http://danrouse.github.io/react-audio-recorder/)
+Live demo: [danrouse.github.io/react-audio-recorder](https://danrouse.github.io/react-audio-recorder/)
 
 
 ## Installation
