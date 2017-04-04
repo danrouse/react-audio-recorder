@@ -1,8 +1,10 @@
 {
   "name": "react-audio-recorder",
-  "version": "2.0.0a",
+  "version": "2.0.0",
   "description": "Audio Recorder",
-  "main": "dist/AudioRecorder.js",
+  "main": "dist/AudioRecorder.min.js",
+  "module": "dist/AudioRecorder.js",
+  "jsnext:main": "dist/AudioRecorder.js",
   "author": "Dan Rouse",
   "homepage": "https://github.com/kremonte/react-audio-recorder",
   "repository": {
@@ -15,9 +17,9 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc -w",
+    "bundle": "webpack -p",
     "test": "tslint",
-    "prepublish": "npm run build",
-    "bundle": "webpack -p"
+    "prepublish": "npm run build && npm run bundle"
   },
   "keywords": [
     "react",
