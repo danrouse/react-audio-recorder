@@ -21,6 +21,9 @@ interface AudioRecorderProps {
   onPlay?: () => void,
   onRecordStart?: () => void,
 
+  startRecording?: boolean,
+  reset?: boolean,
+
   playLabel?: string,
   playingLabel?: string,
   recordLabel?: string,
@@ -45,6 +48,7 @@ export default class AudioRecorder extends React.Component<AudioRecorderProps, A
   };
 
   static defaultProps = {
+    startRecording: false,
     loop: false,
     downloadable: true,
     className: '',
@@ -73,6 +77,11 @@ export default class AudioRecorder extends React.Component<AudioRecorderProps, A
         isRecording: false,
       });
     }
+  }
+
+  componentDidUpdate() {
+    { this.props.startRecording ? this.startRecording() : undefined }
+    { this.props.reset ? this.onRemoveClick() : undefined }
   }
 
   componentWillMount() { this.waveInterface.reset(); }
