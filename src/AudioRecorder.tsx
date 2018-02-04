@@ -48,6 +48,7 @@ export default class AudioRecorder extends React.Component<AudioRecorderProps, A
   };
 
   static defaultProps = {
+    reset: false,
     startRecording: false,
     loop: false,
     downloadable: true,
@@ -80,7 +81,7 @@ export default class AudioRecorder extends React.Component<AudioRecorderProps, A
   }
 
   componentDidUpdate() {
-    { this.props.startRecording ? this.startRecording() : undefined }
+    { this.props.startRecording && !this.state.isRecording ? this.startRecording() : undefined }
     { this.props.reset ? this.onRemoveClick() : undefined }
   }
 
@@ -171,14 +172,14 @@ export default class AudioRecorder extends React.Component<AudioRecorderProps, A
             [
               'AudioRecorder-button',
               this.state.audioData ? 'hasAudio' : '',
-              this.state.isPlaying ? 'isPlaying' : '',
+              // this.state.isPlaying ? 'isPlaying' : '',
               this.state.isRecording ? 'isRecording' : '',
             ].join(' ')
           }
           onClick={this.onButtonClick}
         >
           {this.state.audioData && !this.state.isPlaying && this.props.playLabel}
-          {this.state.audioData && this.state.isPlaying && this.props.playingLabel}
+          {/* {this.state.audioData && this.state.isPlaying && this.props.playingLabel} */}
           {!this.state.audioData && !this.state.isRecording && this.props.recordLabel}
           {!this.state.audioData && this.state.isRecording && this.props.recordingLabel}
         </button>
