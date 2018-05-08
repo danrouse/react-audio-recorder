@@ -24,6 +24,7 @@ npm install react-audio-recorder --save
 The `<AudioRecorder>` component can be instantiated with no properties to act as a simple client-side recorder/downloader. `onChange` is called when a recording is finished, with the audio data passed as a blob.
 
 ```
+import React as * from 'react';
 import AudioRecorder from 'react-audio-recorder';
 
 <AudioRecorder />
