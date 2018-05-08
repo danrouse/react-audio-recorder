@@ -24,7 +24,11 @@
   },
   "keywords": [
     "react",
-    "react-component"
+    "react-component",
+    "audio",
+    "web-audio",
+    "recording",
+    "microphone"
   ],
   "peerDependencies": {
     "react": "^16.3.2"
