@@ -13,7 +13,8 @@
       "es2015"
     ],
     "outDir": "dist",
-    "listEmittedFiles": true
+    "listEmittedFiles": true,
+    "moduleResolution": "node"
   },
   "include": [
     "./src/**/*"

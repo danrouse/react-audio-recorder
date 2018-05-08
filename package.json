@@ -19,32 +19,35 @@
     "build": "tsc",
     "dev": "tsc -w",
     "bundle": "webpack -p",
-    "test": "tslint",
+    "test": "jest",
     "prepublish": "npm run build && npm run bundle"
   },
   "keywords": [
     "react",
     "react-component"
   ],
+  "peerDependencies": {
+    "react": "^16.3.2"
+  },
   "devDependencies": {
-    "@types/react": "^15.0.21",
-    "jest": "^19.0.2",
-    "react": "^15.4.2",
-    "react-dom": "^15.4.2",
-    "ts-jest": "^19.0.6",
-    "typescript": "^2.2.2",
-    "webpack": "^2.3.3"
+    "@types/react": "^16.3.13",
+    "jest": "^22.4.3",
+    "react-dom": "^16.3.2",
+    "ts-jest": "^22.4.5",
+    "typescript": "^2.8.3",
+    "webpack": "^4.8.1",
+    "webpack-cli": "^2.1.3"
   },
   "jest": {
     "transform": {
-      ".(ts|tsx)": "<rootDir>/node_modules/ts-jest/preprocessor.js"
+      "^.+\\.tsx?$": "ts-jest"
     },
-    "testRegex": "(/test/.*|\\.(test|spec))\\.(ts|tsx|js)$",
+    "testRegex": "(/test/.*|\\.(test|spec))\\.(jsx?|tsx?)$",
     "moduleFileExtensions": [
       "ts",
       "tsx",
-      "js"
-    ],
-    "testResultsProcessor": "<rootDir>/node_modules/ts-jest/coverageprocessor.js"
+      "js",
+      "jsx"
+    ]
   }
 }
