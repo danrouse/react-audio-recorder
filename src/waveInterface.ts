@@ -1,17 +1,5 @@
 import encodeWAV from './waveEncoder';
 
-/*
-interface Navigator {
-  webkitGetUserMedia?: typeof navigator.getUserMedia,
-  mozGetUserMedia?: typeof navigator.getUserMedia,
-  msGetUserMedia?: typeof navigator.getUserMedia,
-};
-navigator.getUserMedia = navigator.getUserMedia ||
-                         navigator.webkitGetUserMedia ||
-                         navigator.mozGetUserMedia ||
-                         navigator.msGetUserMedia;
-*/
-
 export default class WAVEInterface {
   static audioContext = new AudioContext();
   static bufferSize = 2048;
@@ -38,7 +26,6 @@ export default class WAVEInterface {
         if (this.encodingCache) this.encodingCache = null;
 
         recProcessingNode.onaudioprocess = (event) => {
-          console.log('audio process', this);
           if (this.encodingCache) this.encodingCache = null;
           // save left and right buffers
           for (let i = 0; i < 2; i++) {
