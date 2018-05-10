@@ -41,6 +41,8 @@ loop|boolean|`false`|Whether to loop audio playback
 filename|string|`'output.wav'`|Downloaded file name
 className|string|`''`|CSS class name on the container element
 style|Object|`{}`|Inline styles on the container element
+startRecording|boolean|Whether to start recording or not
+reset|boolean|Triggers reset of settings, will also delete any audio file in memory
 onAbort|`() => void`||Callback when playback is stopped
 onChange|`(AudioRecorderChangeEvent) => void`||Callback when the recording buffer is modified
 onEnded|`() => void`||Callback when playback completes on its own
