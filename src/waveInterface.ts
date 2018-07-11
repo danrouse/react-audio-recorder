@@ -1,5 +1,14 @@
 import encodeWAV from './waveEncoder';
 
+declare global {
+  interface Window {
+    AudioContext: any
+    webkitAudioContext: any
+  }
+}
+
+window.AudioContext = window.AudioContext || window.webkitAudioContext
+
 export default class WAVEInterface {
   static audioContext = new AudioContext();
   static bufferSize = 2048;
