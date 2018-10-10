@@ -6,21 +6,22 @@
   "module": "dist/AudioRecorder.js",
   "jsnext:main": "dist/AudioRecorder.js",
   "license": "MIT",
-  "author": "Dan Rouse",
-  "homepage": "https://github.com/danrouse/react-audio-recorder",
+  "author": "Sajjan Kumar",
+  "homepage": "https://github.com/sajjanbalar/react-audio-recorder",
   "repository": {
     "type": "git",
-    "url": "https://github.com/danrouse/react-audio-recorder.git"
+    "url": "https://github.com/sajjanbalar/react-audio-recorder.git"
   },
   "bugs": {
-    "url": "https://github.com/danrouse/react-audio-recorder/issues"
+    "url": "https://github.com/sajjanbalar/react-audio-recorder/issues"
   },
   "scripts": {
     "build": "tsc",
     "dev": "tsc -w",
     "bundle": "webpack -p",
     "test": "jest",
-    "prepublish": "npm run build && npm run bundle"
+    "prepublish": "npm run build && npm run bundle",
+    "prepare" : "npm run build"
   },
   "keywords": [
     "react",
