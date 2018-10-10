@@ -18,6 +18,10 @@ export default class WAVEInterface {
 
   startRecording() {
     return new Promise((resolve, reject) => {
+	  navigator.getUserMedia = ( navigator.getUserMedia ||
+                       navigator.webkitGetUserMedia ||
+                       navigator.mozGetUserMedia ||
+                       navigator.msGetUserMedia);
       navigator.getUserMedia({ audio: true }, (stream) => {
         const { audioContext } = WAVEInterface;
         const recGainNode = audioContext.createGain();
