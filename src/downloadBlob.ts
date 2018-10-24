@@ -1,5 +1,5 @@
 // trigger a browser file download of binary data
-export default function downloadBlob(blob: Blob, filename: string): HTMLAnchorElement {
+export default function downloadBlob(blob: Blob, filename: string) {
   const url = window.URL.createObjectURL(blob);
   const click = document.createEvent('Event');
   click.initEvent('click', true, true);

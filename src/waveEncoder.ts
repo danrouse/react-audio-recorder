@@ -1,5 +1,5 @@
 function writeUTFBytes(dataview: DataView, offset: number, string: string) {
-  for(let i = 0; i < string.length; i++) {
+  for (let i = 0; i < string.length; i++) {
     dataview.setUint8(offset + i, string.charCodeAt(i));
   }
 }
@@ -7,7 +7,7 @@ function writeUTFBytes(dataview: DataView, offset: number, string: string) {
 function mergeBuffers(buffer: Float32Array[], length): Float64Array {
   const result = new Float64Array(length);
   let offset = 0;
-  for(let i = 0; i < buffer.length; i++) {
+  for (let i = 0; i < buffer.length; i++) {
     const inner = buffer[i];
     result.set(inner, offset);
     offset += inner.length;
@@ -19,7 +19,7 @@ function interleave(left: Float64Array, right: Float64Array): Float64Array {
   const length = left.length + right.length;
   const result = new Float64Array(length);
   let inputIndex = 0;
-  for(var i = 0; i < length; ) {
+  for (let i = 0; i < length; ) {
     result[i++] = left[inputIndex];
     result[i++] = right[inputIndex];
     inputIndex++;
