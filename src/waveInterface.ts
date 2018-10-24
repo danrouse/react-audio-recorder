@@ -1,4 +1,6 @@
 import encodeWAV from './waveEncoder';
+import getUserMedia from './getUserMedia';
+import AudioContext from './AudioContext';
 
 export default class WAVEInterface {
   static audioContext = new AudioContext();
@@ -18,7 +20,7 @@ export default class WAVEInterface {
 
   startRecording() {
     return new Promise((resolve, reject) => {
-      navigator.getUserMedia({ audio: true }, (stream) => {
+      getUserMedia({ audio: true }, (stream) => {
         const { audioContext } = WAVEInterface;
         const recGainNode = audioContext.createGain();
         const recSourceNode = audioContext.createMediaStreamSource(stream);
@@ -63,7 +65,7 @@ export default class WAVEInterface {
       const reader = new FileReader();
       reader.readAsArrayBuffer(this.audioData);
       reader.onloadend = () => {
-        WAVEInterface.audioContext.decodeAudioData(reader.result, (buffer) => {
+        WAVEInterface.audioContext.decodeAudioData(reader.result as ArrayBuffer, (buffer) => {
           const source = WAVEInterface.audioContext.createBufferSource();
           source.buffer = buffer;
           source.connect(WAVEInterface.audioContext.destination);
