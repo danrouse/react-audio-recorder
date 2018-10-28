@@ -31,3 +31,5 @@ example/dist
 *.DS_Store
 .vscode
 dist
+
+package-lock.json

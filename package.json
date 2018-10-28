@@ -3,6 +3,7 @@
   "version": "2.1.0",
   "description": "Audio Recorder",
   "main": "dist/AudioRecorder.min.js",
+  "types": "dist/AudioRecorder.d.ts",
   "module": "dist/AudioRecorder.js",
   "jsnext:main": "dist/AudioRecorder.js",
   "license": "MIT",
@@ -34,13 +35,14 @@
     "react": "^16.3.2"
   },
   "devDependencies": {
-    "@types/react": "^16.3.13",
-    "jest": "^22.4.3",
+    "@types/react": "^16.4.18",
+    "jest": "^23.6.0",
     "react-dom": "^16.3.2",
-    "ts-jest": "^22.4.5",
-    "typescript": "^2.8.3",
-    "webpack": "^4.20.2",
-    "webpack-cli": "^3.1.1"
+
+    "ts-jest": "^23.10.4",
+    "typescript": "^3.1.3",
+    "webpack": "^4.8.1",
+    "webpack-cli": "^3.1.2"
   },
   "jest": {
     "transform": {

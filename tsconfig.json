@@ -3,7 +3,7 @@
     "module": "es6",
     "target": "es5",
     "jsx": "react",
-    "allowJs": true,
+    "declaration": true,
     "typeRoots": [
       "typings",
       "node_modules/@types"
@@ -17,6 +17,7 @@
     "moduleResolution": "node"
   },
   "include": [
-    "./src/**/*"
+    "./src/**/*",
+    "./types/**/*"
   ]
 }
