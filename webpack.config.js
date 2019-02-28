@@ -1,7 +1,9 @@
+const path = require('path');
 module.exports = {
   entry: './dist/AudioRecorder.js',
   output: {
-    filename: './dist/AudioRecorder.min.js',
+    path: path.resolve(__dirname, 'dist'),
+    filename: 'AudioRecorder.min.js',
     library: 'AudioRecorder',
     libraryTarget: 'var'
   },
